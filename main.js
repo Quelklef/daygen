@@ -90,7 +90,22 @@ function render(state) {
   $randomize.innerText = "It's a new day!";
   $randomize.classList.add(':root:randomize', ':button');
   $randomize.addEventListener('click', () => {
-    console.warn('TODO');
+    for (const sigma of state.sigmas) {
+      const raffle = sigma.variants.flatMap(v => repeat([v.uuid], v.weight));
+      const choice = randomChoice(raffle);
+      sigma.current = choice;
+      sigma.history.push(choice);
+    }
+
+    save();
+    rerender();
+
+    function repeat(array, n) {
+      const result = [];
+      for (let i = 0; i < n; i++)
+        result.push(...array);
+      return result;
+    }
   });
   $header.append($randomize);
 
@@ -212,6 +227,7 @@ function renderVariant(variant, sumWeights, isCurrent, isEditable) {
   $weight.addEventListener('input', event => {
     const n = parseInt(event.target.value);
     if (!Number.isNaN(n)) {
+      console.log(n);
       variant.weight = n;
       save();
     }
