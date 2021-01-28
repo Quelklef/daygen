@@ -79,15 +79,33 @@ function render(state) {
   const $container = document.createElement('div');
   $container.classList.add(':root');
 
+  const $header = document.createElement('div');
+  $header.classList.add(':root:header');
+
+  const $title = document.createElement('h1');
+  $title.innerText = 'Day Gen!'
+  $header.append($title);
+
   const $randomize = document.createElement('button');
   $randomize.innerText = "It's a new day!";
   $randomize.classList.add(':root:randomize', ':button');
   $randomize.addEventListener('click', () => {
     console.warn('TODO');
   });
-  $container.append($randomize);
+  $header.append($randomize);
 
-  $container.append(document.createElement('hr'));
+  $container.append($header);
+
+  const $toggleEditing = document.createElement('button');
+  $toggleEditing.innerText = 'editing: ' + (state.editing ? 'on' : 'off');
+  $toggleEditing.classList.add(':root:toggle-editing', ':button');
+  if (state.editing) $toggleEditing.classList.add('--pressed');
+  $toggleEditing.addEventListener('click', () => {
+    state.editing = !state.editing;
+    save();
+    rerender();
+  });
+  $container.append($toggleEditing);
 
   const $addSigma = document.createElement('button');
   $addSigma.innerText = '+';
@@ -97,18 +115,7 @@ function render(state) {
     save();
     rerender();
   });
-  $container.append($addSigma);
-
-  const $toggleEditing = document.createElement('button');
-  $toggleEditing.innerText = 'edit';
-  $toggleEditing.classList.add(':root:toggle-editing', ':button');
-  if (state.editing) $toggleEditing.classList.add('--pressed');
-  $toggleEditing.addEventListener('click', () => {
-    state.editing = !state.editing;
-    save();
-    rerender();
-  });
-  $container.append($toggleEditing);
+  if (state.editing) $container.append(' | ', $addSigma);
 
   $container.append(...state.sigmas.map(s => renderSigma(s, state.editing)));
 
@@ -124,21 +131,24 @@ function renderSigma(sigma, isEditable) {
   const $sigma = document.createElement('div');
   $sigma.classList.add(':sigma');
 
-  const $name = document.createElement(isEditable ? 'input' : 'span');
-  $name.classList.add(':sigma:name')
+  const $name = document.createElement('input');
+  $name.classList.add(':sigma:name', '~dual')
   $name.type = 'text';
-  $name[isEditable ? 'value' : 'innerText'] = sigma.name;
+  if (!isEditable) $name.readOnly = true;
+  $name.value = sigma.name;
   if (isEditable) $name.addEventListener('change', event => {
     sigma.name = event.target.value;
     save();
   });
   $sigma.append($name);
 
-  const $elasticity = document.createElement(isEditable ? 'input' : 'span');
-  $elasticity.classList.add(':sigma:elasticity');
-  $elasticity[isEditable ? 'value' : 'innerText'] = sigma.elasticity;
-  if (isEditable) $elasticity.type = 'number';
-  if (isEditable) $elasticity.addEventListener('change', event => {
+  /*
+  const $elasticity = document.createElement('input');
+  $elasticity.type = 'number';
+  if (!isEditable) $elasticity.readOnly = true;
+  $elasticity.classList.add(':sigma:elasticity', '~dual');
+  $elasticity.value = sigma.elasticity;
+  $elasticity.addEventListener('change', event => {
     const e = parseInt(event.target.value, 10);
     if (!Number.isNaN(e)) {
       sigma.elasticity = e;
@@ -146,45 +156,53 @@ function renderSigma(sigma, isEditable) {
     }
   });
   $sigma.append($elasticity);
+  */
 
-  if (isEditable) $sigma.append(renderObliterate(() => {
+  if (isEditable) $sigma.append(renderObliterate(':sigma:obliterate', () => {
     state.sigmas = state.sigmas.filter(s => s.uuid !== sigma.uuid);
     save();
     rerender();
   }));
 
-  $sigma.append(...sigma.variants.map(v => renderVariant(v, v.name === sigma.current, isEditable)));
+  const sumWeights = sigma.variants.map(v => v.weight).reduce((a, b) => a + b, 0);
+  const $variants = document.createElement('div');
+  $variants.classList.add(':sigma:variants');
+  $variants.append(...sigma.variants.map(v => renderVariant(v, sumWeights, v.uuid === sigma.current, isEditable)));
+  $sigma.append($variants);
 
   return $sigma;
 }
 
-function renderVariant(variant, isCurrent, isEditable) {
+function renderVariant(variant, sumWeights, isCurrent, isEditable) {
   const $variant = document.createElement('span');
   $variant.classList.add(':variant');
+  if (isCurrent) $variant.classList.add('--current');
 
-  const $name = document.createElement(isEditable ? 'input' : 'span');
-  $name.classList.add(':variant:name');
-  $name[isEditable ? 'value' : 'innerText'] = variant.name;
-  if (isCurrent) $name.classList.add('--current');
-  if (isEditable) $name.addEventListener('change', event => {
+  const $name = document.createElement('input');
+  $name.classList.add(':variant:name', '~dual');
+  $name.value = variant.name;
+  if (!isEditable) $name.readOnly = true;
+  $name.addEventListener('change', event => {
     variant.name = event.target.value;
     save();
   });
   $variant.append($name);
 
-  const $weight = document.createElement(isEditable ? 'input' : 'span');
-  $weight.classList.add(':variant:weight');
-  $weight[isEditable ? 'value' : 'innerText'] = variant.weight;
-  if (isEditable) $weight.addEventListener('input', event => {
+  const $weight = document.createElement('input');
+  $weight.type = 'number';
+  $weight.classList.add(':variant:weight', '~dual');
+  $weight.value = variant.weight;
+  if (!isEditable) $weight.readOnly = true;
+  $weight.addEventListener('input', event => {
     const n = parseInt(event.target.value);
     if (!Number.isNaN(n)) {
       variant.weight = n;
       save();
     }
   });
-  $variant.append($weight);
+  $variant.append(' ', $weight);
 
-  if (isEditable) $variant.append(renderObliterate(() => {
+  if (isEditable) $variant.append(renderObliterate(':variant:obliterate', () => {
     state.sigmas = state.sigmas.map(sigma => ({ ...sigma, variants: sigma.variants.filter(v => v.uuid != variant.uuid) }));
     save();
     rerender();
@@ -193,9 +211,9 @@ function renderVariant(variant, isCurrent, isEditable) {
   return $variant;
 }
 
-function renderObliterate(onClick) {
+function renderObliterate(clazz, onClick) {
   const $obliterate = document.createElement('button');
-  $obliterate.classList.add(':sigma:oblierate', ':button');
+  $obliterate.classList.add(clazz, ':button', '~material-icons');
   $obliterate.innerText = 'delete_outline';
   $obliterate.addEventListener('click', onClick);
   return $obliterate;
