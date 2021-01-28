@@ -117,7 +117,7 @@ function render(state) {
   });
   if (state.editing) $container.append(' | ', $addSigma);
 
-  $container.append(...state.sigmas.map(s => renderSigma(s, state.editing)));
+  $container.append(...state.sigmas.map(s => renderSigma(s, state.editing, state)));
 
   // hehe
   if (state.editing)
@@ -127,7 +127,7 @@ function render(state) {
   return $container;
 }
 
-function renderSigma(sigma, isEditable) {
+function renderSigma(sigma, isEditable, state) {
   const $sigma = document.createElement('div');
   $sigma.classList.add(':sigma');
 
@@ -167,7 +167,23 @@ function renderSigma(sigma, isEditable) {
   const sumWeights = sigma.variants.map(v => v.weight).reduce((a, b) => a + b, 0);
   const $variants = document.createElement('div');
   $variants.classList.add(':sigma:variants');
+
   $variants.append(...sigma.variants.map(v => renderVariant(v, sumWeights, v.uuid === sigma.current, isEditable)));
+
+  const $addVariant = document.createElement('button');
+  $addVariant.classList.add(':sigma:add-variant', ':button');
+  $addVariant.innerText = '+';
+  $addVariant.addEventListener('click', () => {
+    sigma.variants.push({
+      uuid: genUuid(state),
+      name: '!?',
+      weight: 1,
+    });
+    save();
+    rerender();
+  });
+  if (isEditable) $variants.append($addVariant);
+
   $sigma.append($variants);
 
   return $sigma;

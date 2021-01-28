@@ -104,8 +104,13 @@ input[type=number].\~dual {
 .\:sigma\:variants {
   width: 100%;
   display: flex;
+  align-items: center;
   border: 2px solid black;
   border-radius: 5px;
+}
+
+.\:sigma\:add-variant {
+  margin: 0 1.5em;
 }
 
 .\:sigma\:variants > .\:variant {
@@ -124,6 +129,7 @@ input[type=number].\~dual {
 .\:variant {
   padding: .5em 1em;
   position: relative;
+  height: 3em;
 }
 
 .\:variant.--current {
