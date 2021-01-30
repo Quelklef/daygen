@@ -39,9 +39,6 @@ body {
   border-bottom: 1px solid black;
 }
 
-input[type=text].\~dual {
-  width: 30ch;
-}
 input[type=number].\~dual {
   width: 4ch;
 }
