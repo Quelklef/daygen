@@ -11,7 +11,7 @@ import Platform (Program, Update, app)
 import Data.Batched (Batched(Batch))
 
 import MyPrelude
-import Core (Model, Sigma, Variant, UUID, genUuid, randomizeSigma)
+import Core (Model, Sigma, Variant, UUID, genUuid, randomizeSigma, fullCyclicityNextVariant)
 import Util (parseInt)
 import Storage (save, load)
 import ExampleSigma (randomExampleSigma)
@@ -250,6 +250,18 @@ view model =
           [ A.onClick (CreateVariant { sigmaUuid: sigma.uuid }) ]
           [ H.text "+" ]
         ]
+
+      -- preview of tomorrow, if cyclicity is 100%
+      , fullCyclicityNextVariant sigma
+        # maybe mempty \nextVariant ->
+          H.divS
+          [ Batch $ styles.withinColumn
+          , S.fontStyle "italic"
+          , S.marginTop ".5em"
+          , S.textAlign "right"
+          ]
+          [ ]
+          [ H.text $ "tomorrow: " <> nextVariant.name ]
       ]
 
     viewVariant :: Sigma -> Variant -> Html Msg

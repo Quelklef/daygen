@@ -104,6 +104,8 @@ import Data.Foldable
   , length
   , null
   , find
+  , maximumBy
+  , minimumBy
   ) as X
 
 import Data.Traversable
