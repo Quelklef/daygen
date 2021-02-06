@@ -7,6 +7,7 @@ You can edit this file as you like.
   [ "argonaut"
   , "argonaut-generic"
   , "console"
+  , "debug"
   , "effect"
   , "elmish"
   , "lists"
