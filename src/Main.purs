@@ -316,7 +316,7 @@ view model =
     ----------------------------------------------------------------
     -- Styles!
 
-    columnWidth = "800px"
+    columnWidth = "700px"
 
     styles =
       { standardButton:
