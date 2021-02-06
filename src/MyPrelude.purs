@@ -1,5 +1,6 @@
 module MyPrelude
   ( module X
+  , mtimes
   , indexOf
   , indexIn
   , fix
@@ -238,8 +239,14 @@ import Data.Tuple (fst)
 import Data.Tuple.Nested ((/\))
 import Data.HeytingAlgebra ((&&))
 import Data.Semiring ((+))
+import Data.Ring ((-))
 import Data.Eq (class Eq, (==))
 import Data.Function (flip)
+import Data.Monoid (class Monoid, mempty)
+import Data.Semigroup ((<>))
+
+mtimes :: forall m. Monoid m => Int -> m -> m
+mtimes n m = if n == 0 then mempty else m <> mtimes (n - 1) m
 
 -- Trivial port of Elm 'fix' implementation from Rosetta Code
 data Mu a b = Roll (Mu a b -> a -> b)

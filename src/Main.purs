@@ -3,7 +3,7 @@ module Main (main) where
 import Control.Monad.Trans.Class (lift)
 import Attribute as A
 import Data.Array (filter, last, head)
-import Data.Int (toNumber)
+import Data.Int (toNumber, round)
 import Html (Html)
 import Css as S
 import Html as H
@@ -82,7 +82,8 @@ update model msg = do
 
     randomizeSigma :: Sigma -> Effect Sigma
     randomizeSigma sigma = do
-      maybeChoice <- randomChoice sigma.variants
+      let weightedVariants = sigma.variants >>= \variant -> mtimes (round variant.weight) [variant]
+      maybeChoice <- randomChoice weightedVariants
       pure $ case maybeChoice of
         Nothing -> sigma
         Just choice -> sigma { current = choice.uuid, history = sigma.history <> [choice.uuid] }
