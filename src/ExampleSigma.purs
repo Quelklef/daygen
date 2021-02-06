@@ -81,4 +81,7 @@ exampleSigmaSeeds =
   , { name: "Spirituality",
       variants: [ "on" /\ 1.0, "off" /\ 1.0 ] }
 
+  , { name: "Hairstyle",
+      variants: [ "braid" /\ 1.0, "bun" /\ 1.0, "down" /\ 1.0, "hat" /\ 1.0, "cat?" /\ 1.0 ] }
+
   ]
