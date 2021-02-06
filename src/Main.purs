@@ -2,7 +2,7 @@ module Main (main) where
 
 import Control.Monad.Trans.Class (lift)
 import Attribute as A
-import Data.Array (filter, last, head)
+import Data.Array (filter, last, head, slice, take)
 import Data.Int (toNumber, round)
 import Html (Html)
 import Css as S
@@ -12,7 +12,7 @@ import Data.Batched (Batched(Batch))
 
 import MyPrelude
 import Core (Model, Sigma, Variant, UUID, genUuid)
-import Util (randomChoice, parseInt)
+import Util (randomDecimal, parseInt)
 import Storage (save, load)
 import ExampleSigma (randomExampleSigma)
 
@@ -82,11 +82,29 @@ update model msg = do
 
     randomizeSigma :: Sigma -> Effect Sigma
     randomizeSigma sigma = do
-      let weightedVariants = sigma.variants >>= \variant -> mtimes (round variant.weight) [variant]
-      maybeChoice <- randomChoice weightedVariants
-      pure $ case maybeChoice of
-        Nothing -> sigma
-        Just choice -> sigma { current = choice.uuid, history = sigma.history <> [choice.uuid] }
+      r <- randomDecimal
+      let maybeChoice = sigma.variants # findWithIndex \(variant /\ idx) ->
+            let cumprob = sum $ probability <$> take idx sigma.variants
+            in r - cumprob < probability variant
+      let choice = unsafePartial $ fromJust maybeChoice
+      pure $ sigma { current = choice.uuid, history = sigma.history <> [choice.uuid] }
+      where
+        probability :: Variant -> Number
+        probability variant = modifiedWeight variant / sum (modifiedWeight <$> sigma.variants)
+
+        modifiedWeight :: Variant -> Number
+        modifiedWeight variant =
+          let weight = variant.weight
+              cycleLength = sum $ round <<< _.weight <$> sigma.variants
+              deduction = count (_ == variant.uuid) $ takeLast (cycleLength - 1) sigma.history
+              deducted = weight - sigma.cyclicity * deduction
+          in max 0.0 deducted
+          where
+            takeLast n xs = xs # slice (length xs - n) (length xs)
+            count p xs = length $ filter p xs
+
+        findWithIndex :: forall a. (a /\ Int -> Boolean) -> Array a -> Maybe a
+        findWithIndex p = enumerate >>> find p >>> map fst
 
 
 view :: Model -> { head :: Array (Html Msg) , body :: Array (Html Msg) }
@@ -202,14 +220,38 @@ view model =
           , A.onInput \name -> ModifySigma sigma.uuid false (_ { name = name })
           ]
 
-        -- delete button
-        , guard (model.editing)
-          H.buttonS
-          [ Batch $ styles.materialIconButton
-          , S.marginLeft "1em"
+        , guard model.editing $
+          H.span
+          [ ]
+
+          -- cyclicity
+          [ H.spanS
+            [ S.marginLeft "3ch" ]
+            [ ]
+            [ ]
+          , H.text "cyclicity: "
+          , H.inputS
+            [ S.width "8ch"
+            ]
+            [ A.type_ "number"
+            , A.min "0"
+            , A.step "1"
+            , A.max "100"
+            , A.value $ show (round $ 100.0 * sigma.cyclicity)
+            , A.onInput \text ->
+                parseInt text <#> toNumber >>> (_ / 100.0)
+                # maybe Noop \cyclicity -> ModifySigma sigma.uuid false (_ { cyclicity = cyclicity })
+            ]
+          , H.text " %"
+
+          -- delete button
+          , H.buttonS
+            [ Batch $ styles.materialIconButton
+            , S.marginLeft "1em"
+            ]
+            [ A.onClick (Obliterate sigma.uuid) ]
+            [ H.text "delete_outline" ]
           ]
-          [ A.onClick (Obliterate sigma.uuid) ]
-          [ H.text "delete_outline" ]
         ]
 
       -- variants

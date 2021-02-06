@@ -4,6 +4,7 @@ module MyPrelude
   , indexOf
   , indexIn
   , fix
+  , enumerate
   ) where
 
 import Data.Void
@@ -101,6 +102,7 @@ import Data.Foldable
   , indexr
   , length
   , null
+  , find
   ) as X
 
 import Data.Traversable
@@ -236,7 +238,7 @@ import Control.Category ((<<<))
 import Data.Foldable (class Foldable, foldr)
 import Data.Maybe (Maybe(..), isNothing)
 import Data.Tuple (fst)
-import Data.Tuple.Nested ((/\))
+import Data.Tuple.Nested (type (/\), (/\))
 import Data.HeytingAlgebra ((&&))
 import Data.Semiring ((+))
 import Data.Ring ((-))
@@ -245,6 +247,7 @@ import Data.Ord ((<=))
 import Data.Function (flip)
 import Data.Monoid (class Monoid, mempty)
 import Data.Semigroup ((<>))
+import Data.Array (uncons)
 
 mtimes :: forall m. Monoid m => Int -> m -> m
 mtimes n m = if n <= 0 then mempty else m <> mtimes (n - 1) m
@@ -260,3 +263,11 @@ indexOf it = fst <<< foldr (\x (r /\ i) -> let r' = if isNothing r && x == it th
 
 indexIn :: forall f a. Eq a => Foldable f => f a -> a -> Maybe Int
 indexIn = flip indexOf
+
+-- can be generalized -- Foldable and Unfodlable ..?
+enumerate :: forall a. Array a -> Array (a /\ Int)
+enumerate = enumerate_impl 0
+  where enumerate_impl idx ar =
+          case uncons ar of
+            Nothing -> []
+            Just { head, tail } -> [head /\ idx] <> enumerate_impl (idx + 1) tail

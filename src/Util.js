@@ -1,0 +1,1 @@
+exports.randomDecimal = () => Math.random();

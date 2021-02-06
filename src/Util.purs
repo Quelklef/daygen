@@ -1,4 +1,4 @@
-module Util (randomChoice, randomChoice', parseInt) where
+module Util (randomChoice, randomChoice', randomDecimal, parseInt) where
 
 import Data.String.CodeUnits (toCharArray)
 import Effect.Random (randomInt)
@@ -13,6 +13,9 @@ randomChoice xs = do
 
 randomChoice' :: Partial => forall a. Array a -> Effect a
 randomChoice' xs = fromJust <$> randomChoice xs
+
+-- random in [0, 1)
+foreign import randomDecimal :: Effect Number
 
 parseInt :: String -> Maybe Int
 parseInt str = traverse (indexIn digits) (toCharArray str) <#> foldr (\a b -> a * 10 + b) 0
