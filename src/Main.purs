@@ -186,7 +186,7 @@ view model =
         [ H.inputS
           [ Batch $ styles.dualText model.editing
           , S.fontSize "18px"
-          , S.margin "1em 0"
+          , S.margin "1em 0 .5em 0"
           , S.flex "1"
           ]
           [ A.value sigma.name
@@ -209,7 +209,7 @@ view model =
             ]
             [ A.type_ "number"
             , A.min "0"
-            , A.step "1"
+            , A.step "10"
             , A.max "100"
             , A.value $ show (round $ 100.0 * sigma.cyclicity)
             , A.onInput \text ->
