@@ -241,7 +241,7 @@ view model =
       [ H.spanS
         [ S.display "inline-block"
         , S.padding "10px"
-        , S.minWidth "150px"
+        , S.width $ "max(200px, " <> columnWidth <> " / " <> show (length sigma.variants :: Int) <> ")"
         , S.borderTop $ "2px solid black"
         , S.borderBottom $ "2px solid black"
         , S.borderLeft $ "1px solid black"
