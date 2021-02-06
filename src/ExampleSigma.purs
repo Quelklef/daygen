@@ -14,7 +14,7 @@ randomExampleSigma = do
 
   uuid <- genUuid
   current <- _.uuid <$> (unsafePartial $ randomChoice' variants)
-  pure ({ name: seed.name, uuid, variants, current, history: [], elasticity: 1.0 } :: Sigma)
+  pure ({ name: seed.name, uuid, variants, current, history: [], cyclicity: 0.0 } :: Sigma)
 
 exampleSigmaSeeds :: Array { name :: String, variants :: Array (String /\ Number) }
 exampleSigmaSeeds =

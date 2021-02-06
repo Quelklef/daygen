@@ -13,7 +13,7 @@ type Sigma =
   , variants :: Array Variant
   , current :: UUID
   , history :: Array UUID
-  , elasticity :: Number
+  , cyclicity :: Number
   }
 
 type Variant =

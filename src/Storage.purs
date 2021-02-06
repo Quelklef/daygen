@@ -11,7 +11,7 @@ import Data.Argonaut.Encode (class EncodeJson, encodeJson)
 import Data.Argonaut.Decode (class DecodeJson, decodeJson)
 
 import MyPrelude
-import Core (Model)
+import Core (Model, Sigma)
 import JsonCodableNatural (JsonCodableNatural(..), unJsonCodableNatural)
 
 foreign import localStorageSetString :: String -> String -> Effect Unit
@@ -64,4 +64,50 @@ migrations =
   -- to v0
   [ \_ -> unsafePartial (fromJust <<< hush <<< jsonParser)
         $ """ { "sigmas": [], "editing": false } """
+
+  , v0_to_v1
   ]
+
+unsafeDecode :: forall j. DecodeJson j => Json -> j
+unsafeDecode = unsafePartial (fromJust <<< hush <<< decodeJson)
+
+--------------------------------------------------------------------------------
+
+type Model'v0 =
+  { sigmas :: Array Sigma'v0
+  , editing :: Boolean
+  }
+
+type Sigma'v0 =
+  { uuid :: UUID'v0
+  , name :: String
+  , variants :: Array Variant'v0
+  , current :: UUID'v0
+  , history :: Array UUID'v0
+  , elasticity :: Number
+  }
+
+type Variant'v0 =
+  { uuid :: UUID'v0
+  , name :: String
+  , weight :: Number
+  }
+
+type UUID'v0 = String
+
+v0_to_v1 :: Json -> Json
+v0_to_v1 json =
+  let model'v0 = (unsafeDecode json :: Model'v0)
+      model'v1 = model'v0 { sigmas = model'v0.sigmas <#> updateSigma }
+  in encodeJson model'v1
+
+  where
+    updateSigma :: Sigma'v0 -> Sigma
+    updateSigma sigma =
+      { uuid: sigma.uuid
+      , name: sigma.name
+      , variants: sigma.variants
+      , current: sigma.current
+      , history: sigma.history
+      , cyclicity: 0.0
+      }
