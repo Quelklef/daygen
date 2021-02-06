@@ -86,7 +86,10 @@ view model =
   { head:
     [ H.title "Daygen!"
     , H.link [ A.rel "stylesheet", A.href "https://necolas.github.io/normalize.css/latest/normalize.css" ]
-    , H.element "style" [ ] [ H.text " * { box-sizing: border-box; } " ]
+    , H.element "style" [ ] [ H.text """
+        * { box-sizing: border-box; }
+        body { background-color: white; }  /* insurance against dark mode */
+      """ ]
     , H.link [ A.rel "preconnect", A.href "https://fonts.gstatic.com" ]
     , H.link [ A.rel "stylesheet", A.href "https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" ]
     , H.link [ A.rel "stylesheet", A.href "https://fonts.googleapis.com/css2?family=Material+Icons" ]
