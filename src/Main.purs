@@ -325,24 +325,25 @@ view model =
           ]
           [ ]
           -- weight
-          [ guard (model.editing) $ H.text "weight: "
-          , guard (model.editing) $
-            H.inputS
-            [ S.width "10ch"
-            ]
-            [ A.type_ "number"
-            , A.value (show variant.weight)
-            , guard (not model.editing) $ A.readonly "readonly"
-            , A.onInput \weightString ->
-                toNumber <$> parseInt weightString
-                # maybe Noop \weight -> ModifyVariant variant.uuid true (_ { weight = weight })
+          [ H.div
+            [ ]
+            [ H.text "weight: "
+            , H.inputS
+              [ S.width "10ch"
+              ]
+              [ A.type_ "number"
+              , A.value (show variant.weight)
+              , guard (not model.editing) $ A.readonly "readonly"
+              , A.onInput \weightString ->
+                  toNumber <$> parseInt weightString
+                  # maybe Noop \weight -> ModifyVariant variant.uuid true (_ { weight = weight })
+              ]
             ]
 
           -- delete button
           , guard (model.editing) $
             H.buttonS
             [ Batch $ styles.materialIconButton
-            , S.float "right"
             ]
             [ A.onClick (Obliterate variant.uuid) ]
             [ H.text "delete_outline" ]
