@@ -2,7 +2,7 @@ module Main (main) where
 
 import Control.Monad.Trans.Class (lift)
 import Attribute as A
-import Data.Array (filter, last, head, slice, take)
+import Data.Array (filter, last, head)
 import Data.Int (toNumber, round)
 import Html (Html)
 import Css as S
@@ -11,8 +11,8 @@ import Platform (Program, Update, app)
 import Data.Batched (Batched(Batch))
 
 import MyPrelude
-import Core (Model, Sigma, Variant, UUID, genUuid)
-import Util (randomDecimal, parseInt)
+import Core (Model, Sigma, Variant, UUID, genUuid, randomizeSigma)
+import Util (parseInt)
 import Storage (save, load)
 import ExampleSigma (randomExampleSigma)
 
@@ -79,32 +79,6 @@ update model msg = do
   where
     resetHistory :: Sigma -> Sigma
     resetHistory = _ { history = [] }
-
-    randomizeSigma :: Sigma -> Effect Sigma
-    randomizeSigma sigma = do
-      r <- randomDecimal
-      let maybeChoice = sigma.variants # findWithIndex \(variant /\ idx) ->
-            let cumprob = sum $ probability <$> take idx sigma.variants
-            in r - cumprob < probability variant
-      let choice = unsafePartial $ fromJust maybeChoice
-      pure $ sigma { current = choice.uuid, history = sigma.history <> [choice.uuid] }
-      where
-        probability :: Variant -> Number
-        probability variant = modifiedWeight variant / sum (modifiedWeight <$> sigma.variants)
-
-        modifiedWeight :: Variant -> Number
-        modifiedWeight variant =
-          let weight = variant.weight
-              cycleLength = sum $ round <<< _.weight <$> sigma.variants
-              deduction = count (_ == variant.uuid) $ takeLast (cycleLength - 1) sigma.history
-              deducted = weight - sigma.cyclicity * deduction
-          in max 0.0 deducted
-          where
-            takeLast n xs = xs # slice (length xs - n) (length xs)
-            count p xs = length $ filter p xs
-
-        findWithIndex :: forall a. (a /\ Int -> Boolean) -> Array a -> Maybe a
-        findWithIndex p = enumerate >>> find p >>> map fst
 
 
 view :: Model -> { head :: Array (Html Msg) , body :: Array (Html Msg) }
