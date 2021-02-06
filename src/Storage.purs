@@ -61,10 +61,7 @@ load = do
 
 migrations :: Array (Json -> Json)
 migrations =
-  -- to v0
-  [ \_ -> unsafePartial (fromJust <<< hush <<< jsonParser)
-        $ """ { "sigmas": [], "editing": false } """
-
+  [ to_v0
   , v0_to_v1
   ]
 
@@ -72,6 +69,10 @@ unsafeDecode :: forall j. DecodeJson j => Json -> j
 unsafeDecode = unsafePartial (fromJust <<< hush <<< decodeJson)
 
 --------------------------------------------------------------------------------
+
+to_v0 :: forall x. x -> Json
+to_v0 _ = unsafePartial (fromJust <<< hush <<< jsonParser)
+        $ """ { "sigmas": [], "editing": false } """
 
 type Model'v0 =
   { sigmas :: Array Sigma'v0
@@ -94,6 +95,8 @@ type Variant'v0 =
   }
 
 type UUID'v0 = String
+
+--------------------------------------------------------------------------------
 
 v0_to_v1 :: Json -> Json
 v0_to_v1 json =
