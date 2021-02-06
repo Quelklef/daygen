@@ -18,5 +18,5 @@ randomChoice' xs = fromJust <$> randomChoice xs
 foreign import randomDecimal :: Effect Number
 
 parseInt :: String -> Maybe Int
-parseInt str = traverse (indexIn digits) (toCharArray str) <#> foldr (\a b -> a * 10 + b) 0
+parseInt str = traverse (indexIn digits) (toCharArray str) <#> foldl (\a b -> a * 10 + b) 0
   where digits = toCharArray "0123456789"

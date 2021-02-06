@@ -332,7 +332,9 @@ view model =
               [ S.width "10ch"
               ]
               [ A.type_ "number"
-              , A.value (show variant.weight)
+              , A.min "0"
+              , A.step "1"
+              , A.value (show $ round variant.weight)
               , guard (not model.editing) $ A.readonly "readonly"
               , A.onInput \weightString ->
                   toNumber <$> parseInt weightString

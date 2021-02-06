@@ -5,6 +5,7 @@ module MyPrelude
   , indexIn
   , fix
   , enumerate
+  , debugSpy
   ) where
 
 import Data.Void
@@ -235,7 +236,7 @@ import Partial.Unsafe
 --
 
 import Control.Category ((<<<))
-import Data.Foldable (class Foldable, foldr)
+import Data.Foldable (class Foldable, foldl)
 import Data.Maybe (Maybe(..), isNothing)
 import Data.Tuple (fst)
 import Data.Tuple.Nested (type (/\), (/\))
@@ -249,6 +250,11 @@ import Data.Monoid (class Monoid, mempty)
 import Data.Semigroup ((<>))
 import Data.Array (uncons)
 
+import Debug.Trace (class DebugWarning, spy)
+
+debugSpy :: forall a. DebugWarning => String -> a -> a
+debugSpy = spy
+
 mtimes :: forall m. Monoid m => Int -> m -> m
 mtimes n m = if n <= 0 then mempty else m <> mtimes (n - 1) m
 
@@ -259,7 +265,7 @@ fix f = let g r = f (\v -> unroll r r v) in g (Roll g)
   where unroll (Roll x) = x
 
 indexOf :: forall f a. Eq a => Foldable f => a -> f a -> Maybe Int
-indexOf it = fst <<< foldr (\x (r /\ i) -> let r' = if isNothing r && x == it then Just i else r in r' /\ (i + 1)) (Nothing /\ 0)
+indexOf it = fst <<< foldl (\(r /\ i) x -> let r' = if isNothing r && x == it then Just i else r in r' /\ (i + 1)) (Nothing /\ 0)
 
 indexIn :: forall f a. Eq a => Foldable f => f a -> a -> Maybe Int
 indexIn = flip indexOf
