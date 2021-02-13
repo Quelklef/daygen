@@ -337,7 +337,9 @@ view model =
           H.buttonS
           [ styles.standardButton
           , S.padding "0 1em"
-          , S.marginLeft "0.5em"
+          , S.height "100%"
+          , S.position "absolute"
+          , S.left "calc(100% + 2ch)"
           ]
           [ A.onClick (CreateVariant { sigmaUuid: sigma.uuid }) ]
           [ H.text "+" ]
