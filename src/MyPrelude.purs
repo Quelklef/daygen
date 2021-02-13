@@ -97,6 +97,7 @@ import Data.Foldable
   , foldM
   , all
   , any
+  , elem
   , sum
   , product
   , indexl

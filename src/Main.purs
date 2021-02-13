@@ -58,7 +58,9 @@ update model msg = do
 
       ModifyVariant uuid doResetHistory f -> do
         let mapVariant variant = variant # ala Endo (guard $ variant.uuid == uuid) f
-        let mapSigma sigma = sigma { variants = sigma.variants <#> mapVariant } # ala Endo (guard doResetHistory) resetHistory
+        let mapSigma sigma =
+              sigma { variants = sigma.variants <#> mapVariant }
+              # ala Endo (guard $ elem uuid ((_.uuid) <$> sigma.variants) && doResetHistory) resetHistory
         pure $ model { sigmas = model.sigmas <#> mapSigma }
 
       Obliterate uuid -> do
