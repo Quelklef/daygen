@@ -12,9 +12,13 @@ import Data.Batched (Batched(Batch))
 
 import MyPrelude
 import Core (Model, Sigma, Variant, UUID, genUuid, randomizeSigma, previewTomorrow)
-import Util (parseInt)
+import Util (parseInt, move)
 import Storage (save, load)
+import Rearrangable (rearrangable, onRearrange)
 import ExampleSigma (randomExampleSigma)
+
+feature_enableRearrange :: Boolean
+feature_enableRearrange = false
 
 main :: Program Unit Model Msg
 main = app
@@ -28,7 +32,8 @@ init :: Unit -> Update Msg Model
 init _ = lift (unsafePartial load)
 
 data Msg
-  = CreateSigma
+  = ModifyModel (Model -> Model)
+  | CreateSigma
   | CreateVariant { sigmaUuid :: UUID }
   | ModifySigma UUID (Sigma -> Sigma)
   | ModifyVariant UUID Boolean (Variant -> Variant)
@@ -40,6 +45,8 @@ data Msg
 update :: Model -> Msg -> Update Msg Model
 update model msg = do
     model' <- case msg of
+
+      ModifyModel f -> pure $ f model
 
       CreateSigma -> do
         exampleSigma <- lift randomExampleSigma
@@ -82,7 +89,6 @@ update model msg = do
     resetHistory :: Sigma -> Sigma
     resetHistory = _ { history = [] }
 
-
 view :: Model -> { head :: Array (Html Msg) , body :: Array (Html Msg) }
 view model =
   { head:
@@ -95,6 +101,9 @@ view model =
     , H.link [ A.rel "preconnect", A.href "https://fonts.gstatic.com" ]
     , H.link [ A.rel "stylesheet", A.href "https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" ]
     , H.link [ A.rel "stylesheet", A.href "https://fonts.googleapis.com/css2?family=Material+Icons" ]
+    -- v Dependency of Rearrangable.{js,purs}
+    , guard feature_enableRearrange
+      H.script [ A.src "https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js" ] [ ]
     ]
   , body: [ body ]
   }
@@ -172,23 +181,45 @@ view model =
           ]
 
         -- sigmas
-        , Batch $ model.sigmas <#> viewSigma
+        , H.keyed "div"
+          [ rearrangable ".rearrange-handle" Noop
+          , onRearrange \{ fromIdx, toIdx } ->
+                pure $ ModifyModel \old -> fromMaybe old do
+                  rearrangedSigmas <- move { fromIdx, toIdx } old.sigmas
+                  Just $ old { sigmas = rearrangedSigmas }
+          ]
+          ( model.sigmas <#> \sigma -> sigma.uuid /\ viewSigma sigma )
         ]
 
     viewSigma :: Sigma -> Html Msg
     viewSigma sigma =
       H.divS
-      [ S.marginTop "1em" ]
+      [ S.marginTop "1em"
+      ]
       [ ]
 
-      -- name
       [ H.divS
         [ Batch $ styles.withinColumn
         , S.display "flex"
         , S.alignItems "center"
+        , S.position "relative"
         ]
         [ ]
-        [ H.inputS
+
+        -- handle for rearranging
+        [ guard (model.editing && feature_enableRearrange) $
+          H.divS
+          [ S.height "65%"
+          , S.width "1em"
+          , S.position "absolute"
+          , S.left "-1.5em"
+          , Batch $ styles.grippy
+          ]
+          [ A.addClass "rearrange-handle" ]
+          [ ]
+
+        -- name
+        , H.inputS
           [ Batch $ styles.dualText model.editing
           , S.fontSize "18px"
           , S.margin "1em 0 .5em 0"
@@ -243,7 +274,14 @@ view model =
           in S.transform $ "translateX(calc( " <> translateX <> " ))"
         ]
         [ ]
-        [ Batch $ sigma.variants <#> viewVariant sigma
+        [ H.keyed "div"
+          [ rearrangable ".rearrange-handle" Noop
+          , onRearrange \{ fromIdx, toIdx } ->
+                pure $ ModifySigma sigma.uuid \old -> fromMaybe old do
+                  rearrangedVariants <- move { fromIdx, toIdx } old.variants
+                  Just $ old { variants = rearrangedVariants }
+          ]
+          ( sigma.variants <#> \variant -> variant.uuid /\ viewVariant sigma variant )
 
         -- add variant button
         , guard (model.editing)
@@ -315,8 +353,20 @@ view model =
           , S.alignItems "center"
           ]
           [ ]
+
+          -- handle for rearranging
+          [ guard feature_enableRearrange $
+            H.divS
+            [ S.height "1.5em"
+            , S.width "1em"
+            , S.marginRight "2ch"
+            , Batch $ styles.grippy
+            ]
+            [ A.addClass "rearrange-handle" ]
+            [ ]
+
           -- weight
-          [ H.div
+          , H.div
             [ ]
             [ H.text "weight: "
             , H.inputS
@@ -332,6 +382,12 @@ view model =
                   # maybe Noop \weight -> ModifyVariant variant.uuid true (_ { weight = weight })
               ]
             ]
+
+          , H.spanS
+            [ S.flex "1"
+            ]
+            [ ]
+            [ ]
 
           -- delete button
           , guard (model.editing) $
@@ -402,5 +458,11 @@ view model =
         , S.focus [ S.outline "none", S.fontWeight "bold" ]
         , S.active [ S.outline "none" ]
         , S.verticalAlign "middle"
+        ]
+
+      , grippy:
+        [ S.background "url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAJElEQVQYV2NkQAOMUP5/BgYGEHsmTACuDiYwk4GBIZ2BgeE/AEk4A53J3GFNAAAAAElFTkSuQmCC) repeat"
+        , S.opacity "0.6"
+        , S.cursor "move"
         ]
       }

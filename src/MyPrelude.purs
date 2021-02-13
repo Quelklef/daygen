@@ -40,6 +40,7 @@ import Data.Maybe
   , isJust
   , isNothing
   , fromJust
+  , fromMaybe
   , maybe
   ) as X
 
