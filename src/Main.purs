@@ -185,7 +185,8 @@ view model =
 
         -- sigmas
         , H.keyed "div"
-          [ rearrangable ".rearrange-handle" Noop
+          [ guard model.enableWip $
+            rearrangable ".rearrange-handle" Noop
           , onRearrange \{ fromIdx, toIdx } ->
                 pure $ ModifyModel \old -> fromMaybe old do
                   rearrangedSigmas <- move { fromIdx, toIdx } old.sigmas
@@ -324,7 +325,8 @@ view model =
         ]
         [ ]
         [ H.keyed "div"
-          [ rearrangable ".rearrange-handle" Noop
+          [ guard model.enableWip $
+            rearrangable ".rearrange-handle" Noop
           , onRearrange \{ fromIdx, toIdx } ->
                 pure $ ModifySigma sigma.uuid \old -> fromMaybe old do
                   rearrangedVariants <- move { fromIdx, toIdx } old.variants
