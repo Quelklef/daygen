@@ -121,7 +121,7 @@ view model =
 
         -- heading
         [ H.divS
-          [ Batch $ styles.withinColumn
+          [ styles.withinColumn
           , S.display "flex"
           , S.justifyContent "space-between"
           , S.alignItems "center"
@@ -165,17 +165,17 @@ view model =
 
         -- controls
         , H.divS
-          styles.withinColumn
+          [ styles.withinColumn ]
           [ ]
           [ H.buttonS
-            styles.standardButton
+            [ styles.standardButton ]
             [ A.onClick ToggleEditing ]
             [ H.text $ "editing: " <> if model.editing then "on" else "off" ]
           , guard model.editing $
             H.text " | "
           , guard model.editing $
             H.buttonS
-              styles.standardButton
+              [ styles.standardButton ]
               [ A.onClick CreateSigma ]
               [ H.text "+" ]
           ]
@@ -199,7 +199,7 @@ view model =
       [ ]
 
       [ H.divS
-        [ Batch $ styles.withinColumn
+        [ styles.withinColumn
         , S.display "flex"
         , S.alignItems "center"
         , S.position "relative"
@@ -213,14 +213,14 @@ view model =
           , S.width "1em"
           , S.position "absolute"
           , S.left "-1.5em"
-          , Batch $ styles.grippy
+          , styles.grippy
           ]
           [ A.addClass "rearrange-handle" ]
           [ ]
 
         -- name
         , H.inputS
-          [ Batch $ styles.dualText model.editing
+          [ styles.dualText model.editing
           , S.fontSize "18px"
           , S.margin "1em 0 .5em 0"
           , S.flex "1"
@@ -256,7 +256,7 @@ view model =
 
           -- delete button
           , H.buttonS
-            [ Batch $ styles.materialIconButton
+            [ styles.materialIconButton
             , S.marginLeft "1em"
             ]
             [ A.onClick (Obliterate sigma.uuid) ]
@@ -286,7 +286,7 @@ view model =
         -- add variant button
         , guard model.editing
           H.buttonS
-          [ Batch $ styles.standardButton
+          [ styles.standardButton
           , S.padding "0 1em"
           , S.marginLeft "0.5em"
           ]
@@ -298,7 +298,7 @@ view model =
         previewTomorrow sigma
         # maybe mempty \nextVariant ->
           H.divS
-          [ Batch $ styles.withinColumn
+          [ styles.withinColumn
           , S.fontStyle "italic"
           , S.marginTop ".5em"
           , S.textAlign "right"
@@ -333,7 +333,7 @@ view model =
         [ H.div
           [ ]
           [ H.inputS
-            [ Batch $ styles.dualText model.editing
+            [ styles.dualText model.editing
             , S.width "100%"
             , S.textAlign "center"
             , guard isCurrent $ S.fontWeight "bold"
@@ -360,7 +360,7 @@ view model =
             [ S.height "1.5em"
             , S.width "1em"
             , S.marginRight "2ch"
-            , Batch $ styles.grippy
+            , styles.grippy
             ]
             [ A.addClass "rearrange-handle" ]
             [ ]
@@ -392,7 +392,7 @@ view model =
           -- delete button
           , guard model.editing $
             H.buttonS
-            [ Batch $ styles.materialIconButton
+            [ styles.materialIconButton
             ]
             [ A.onClick (Obliterate variant.uuid) ]
             [ H.text "delete_outline" ]
@@ -412,7 +412,7 @@ view model =
     columnWidth = "700px"
 
     styles =
-      { standardButton:
+      { standardButton: Batch
         [ S.backgroundColor "transparent"
         , S.border "2px solid black"
         , S.borderRadius "0.3em"
@@ -425,7 +425,7 @@ view model =
         ]
 
       -- <input type=text> which is sometimes for display and sometimes for editing
-      , dualText: \editable ->
+      , dualText: \editable -> Batch
         [ S.padding "0"
         , S.margin "0"
         , S.border "none"
@@ -438,13 +438,13 @@ view model =
         ]
 
       -- Constrained within the page column
-      , withinColumn:
+      , withinColumn: Batch
         [ S.maxWidth columnWidth
         , S.marginLeft "auto !important"
         , S.marginRight "auto !important"
         ]
 
-      , materialIconButton:
+      , materialIconButton: Batch
         [ S.fontFamily "Material Icons"
         , S.padding "0 .5em"
         , S.margin "0"
@@ -460,7 +460,7 @@ view model =
         , S.verticalAlign "middle"
         ]
 
-      , grippy:
+      , grippy: Batch
         [ S.background "url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAJElEQVQYV2NkQAOMUP5/BgYGEHsmTACuDiYwk4GBIZ2BgeE/AEk4A53J3GFNAAAAAElFTkSuQmCC) repeat"
         , S.opacity "0.6"
         , S.cursor "move"
