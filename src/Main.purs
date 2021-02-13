@@ -11,7 +11,7 @@ import Platform (Program, Update, app)
 import Data.Batched (Batched(Batch))
 
 import MyPrelude
-import Core (Model, Sigma, Variant, UUID, genUuid, randomizeSigma, fullCyclicityNextVariant)
+import Core (Model, Sigma, Variant, UUID, genUuid, randomizeSigma, previewTomorrow)
 import Util (parseInt)
 import Storage (save, load)
 import ExampleSigma (randomExampleSigma)
@@ -256,8 +256,8 @@ view model =
           [ H.text "+" ]
         ]
 
-      -- preview of tomorrow, if cyclicity is 100%
-      , fullCyclicityNextVariant sigma
+      , guard (sigma.cyclicity == 1.0) $
+        previewTomorrow sigma
         # maybe mempty \nextVariant ->
           H.divS
           [ Batch $ styles.withinColumn

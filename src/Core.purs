@@ -1,4 +1,4 @@
-module Core (Model, Sigma, Variant, UUID, genUuid, randomizeSigma, fullCyclicityNextVariant) where
+module Core (Model, Sigma, Variant, UUID, genUuid, randomizeSigma, previewTomorrow) where
 
 import Data.Int (round)
 import Data.Array (slice, filter, take, (!!))
@@ -62,14 +62,9 @@ randomizeSigma sigma = do
   where
     findWithIndex p = enumerate >>> find p >>> map fst
 
--- | If the given sigma
--- |  : (a) has more than 0 variants
--- |  ; (b) has cyclicity=100%
--- |  ; (c) has a sufficient history
--- | Then returns the known next variant; else returns Nothing.
-fullCyclicityNextVariant :: Sigma -> Maybe Variant
-fullCyclicityNextVariant sigma =
-  if length sigma.history < cycleLength sigma - 1 then Nothing
-  else let candidates = sigma.variants # filter \v -> modifiedWeight { within: sigma } v > 0.0
-       in if length candidates /= 1 then Nothing
-       else candidates !! 0
+-- | Returns the next variant for this sigma, if it is known.
+previewTomorrow :: Sigma -> Maybe Variant
+previewTomorrow sigma =
+  let candidates = sigma.variants # filter \v -> modifiedWeight { within: sigma } v > 0.0
+  in if length candidates /= 1 then Nothing
+  else candidates !! 0
