@@ -30,7 +30,7 @@ init _ = lift (unsafePartial load)
 data Msg
   = CreateSigma
   | CreateVariant { sigmaUuid :: UUID }
-  | ModifySigma UUID Boolean (Sigma -> Sigma)
+  | ModifySigma UUID (Sigma -> Sigma)
   | ModifyVariant UUID Boolean (Variant -> Variant)
   | Obliterate UUID
   | It'sANewDay
@@ -52,8 +52,8 @@ update model msg = do
         let mapSigma sigma = sigma # ala Endo (guard $ sigma.uuid == sigmaUuid) addVariant
         pure $ model { sigmas = model.sigmas <#> mapSigma }
 
-      ModifySigma uuid doResetHistory f -> do
-        let mapSigma sigma = sigma # (ala Endo (guard doResetHistory) resetHistory >>> ala Endo (guard $ sigma.uuid == uuid) f)
+      ModifySigma uuid f -> do
+        let mapSigma sigma = sigma # ala Endo (guard $ sigma.uuid == uuid) f
         pure $ model { sigmas = model.sigmas <#> mapSigma }
 
       ModifyVariant uuid doResetHistory f -> do
@@ -194,7 +194,7 @@ view model =
           ]
           [ A.value sigma.name
           , guard (not model.editing) $ A.readonly "readonly"
-          , A.onInput \name -> ModifySigma sigma.uuid false (_ { name = name })
+          , A.onInput \name -> ModifySigma sigma.uuid (_ { name = name })
           ]
 
         , guard model.editing $
@@ -217,7 +217,7 @@ view model =
             , A.value $ show (round $ 100.0 * sigma.cyclicity)
             , A.onInput \text ->
                 parseInt text <#> toNumber >>> (_ / 100.0)
-                # maybe Noop \cyclicity -> ModifySigma sigma.uuid false (_ { cyclicity = cyclicity })
+                # maybe Noop \cyclicity -> ModifySigma sigma.uuid (_ { cyclicity = cyclicity })
             ]
           , H.text " %"
 
