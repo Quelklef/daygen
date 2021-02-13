@@ -515,6 +515,8 @@ view model =
         , S.focus [ S.outline "none", S.fontWeight "bold" ]
         , S.active [ S.outline "none" ]
         , S.verticalAlign "middle"
+        , S.transformOrigin "center"
+        , S.transform "scale(1.2)"
         ]
 
       , grippy: Batch
