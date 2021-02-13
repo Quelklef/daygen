@@ -9,6 +9,7 @@ import Util (randomDecimal)
 type Model =
   { sigmas :: Array Sigma
   , editing :: Boolean
+  , enableWip :: Boolean
   }
 
 type Sigma =

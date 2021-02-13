@@ -63,6 +63,7 @@ migrations :: Array (Json -> Json)
 migrations =
   [ to_v0
   , v0_to_v1
+  , v1_to_v2
   ]
 
 unsafeDecode :: forall j. DecodeJson j => Json -> j
@@ -100,7 +101,7 @@ type UUID'v0 = String
 
 v0_to_v1 :: Json -> Json
 v0_to_v1 json =
-  let model'v0 = (unsafeDecode json :: Model'v0)
+  let model'v0 = unsafeDecode json :: Model'v0
       model'v1 = model'v0 { sigmas = model'v0.sigmas <#> updateSigma }
   in encodeJson model'v1
 
@@ -114,3 +115,37 @@ v0_to_v1 json =
       , history: sigma.history
       , cyclicity: 0.0
       }
+
+type Model'v1 =
+  { sigmas :: Array Sigma'v1
+  , editing :: Boolean
+  }
+
+type Sigma'v1 =
+  { uuid :: UUID'v1
+  , name :: String
+  , variants :: Array Variant'v1
+  , current :: UUID'v1
+  , history :: Array UUID'v1
+  , cyclicity :: Number
+  }
+
+type Variant'v1 =
+  { uuid :: UUID'v1
+  , name :: String
+  , weight :: Number
+  }
+
+type UUID'v1 = String
+
+--------------------------------------------------------------------------------
+
+v1_to_v2 :: Json -> Json
+v1_to_v2 json =
+  let model'v1 = unsafeDecode json :: Model'v1
+      model'v2 =
+        { sigmas: model'v1.sigmas
+        , editing: model'v1.editing
+        , enableWip: false
+        }
+  in encodeJson model'v2

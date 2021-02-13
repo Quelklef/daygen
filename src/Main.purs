@@ -17,9 +17,6 @@ import Storage (save, load)
 import Rearrangable (rearrangable, onRearrange)
 import ExampleSigma (randomExampleSigma)
 
-feature_enableRearrange :: Boolean
-feature_enableRearrange = false
-
 main :: Program Unit Model Msg
 main = app
   { init
@@ -40,6 +37,7 @@ data Msg
   | Obliterate UUID
   | It'sANewDay
   | ToggleEditing
+  | ToggleWip
   | Noop
 
 update :: Model -> Msg -> Update Msg Model
@@ -80,6 +78,8 @@ update model msg = do
 
       ToggleEditing -> pure $ model { editing = not model.editing }
 
+      ToggleWip -> pure $ model { enableWip = not model.enableWip }
+
       Noop -> pure model
 
     lift $ save model'
@@ -102,7 +102,7 @@ view model =
     , H.link [ A.rel "stylesheet", A.href "https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" ]
     , H.link [ A.rel "stylesheet", A.href "https://fonts.googleapis.com/css2?family=Material+Icons" ]
     -- v Dependency of Rearrangable.{js,purs}
-    , guard feature_enableRearrange
+    , guard model.enableWip
       H.script [ A.src "https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js" ] [ ]
     ]
   , body: [ body ]
@@ -114,8 +114,11 @@ view model =
 
       -- body
       H.divS
-        [ S.margin "30px 0"
+        [ S.margin "0"
+        , S.padding "30px 0 250px 0"
         , S.backgroundColor "white"
+        , S.minHeight "100vh"
+        , S.position "relative"
         ]
         [ ]
 
@@ -189,6 +192,52 @@ view model =
                   Just $ old { sigmas = rearrangedSigmas }
           ]
           ( model.sigmas <#> \sigma -> sigma.uuid /\ viewSigma sigma )
+
+        -- footer
+        , H.footerS
+          [ S.position "absolute"
+          , S.bottom "0"
+          , S.width "100%"
+          , S.padding "2em 0"
+          ]
+          [ ]
+          [ H.divS
+            [ styles.withinColumn
+            , S.display "flex"
+            , S.justifyContent "space-between"
+            , S.alignItems "center"
+            ]
+            [ ]
+
+            -- credits
+            [ H.div
+              [ ]
+              [ H.text "By "
+              , H.aS [ styles.standardLink ] [ A.href "http://maynards.site" ] [ H.text "Maynard" ]
+              ]
+
+            -- feedback
+            , H.div
+              [ ]
+              [ H.text "Submit feedback: "
+              , H.aS
+                [ styles.standardLink ]
+                [ A.href "https://twitter.com/intent/tweet?text=@Quelklef%20I%20have%20some%20daygen%20feedback!" ]
+                [ H.text "Twitter" ]
+              , H.text ", "
+              , H.aS
+                [ styles.standardLink ]
+                [ A.href "https://github.com/Quelklef/daygen" ]
+                [ H.text "Github" ]
+              ]
+
+            -- experimental features
+            , H.buttonS
+              [ styles.standardButton ]
+              [ A.onClick ToggleWip ]
+              [ H.text $ "WIP features: " <> if model.enableWip then "on" else "off" ]
+            ]
+          ]
         ]
 
     viewSigma :: Sigma -> Html Msg
@@ -207,7 +256,7 @@ view model =
         [ ]
 
         -- handle for rearranging
-        [ guard (model.editing && feature_enableRearrange) $
+        [ guard (model.editing && model.enableWip) $
           H.divS
           [ S.height "65%"
           , S.width "1em"
@@ -355,7 +404,7 @@ view model =
           [ ]
 
           -- handle for rearranging
-          [ guard feature_enableRearrange $
+          [ guard model.enableWip $
             H.divS
             [ S.height "1.5em"
             , S.width "1em"
@@ -424,6 +473,11 @@ view model =
         , S.focus [ S.backgroundColor "rgba(0, 0, 0, 0.02)", S.outline "none" ]
         ]
 
+      , standardLink: Batch
+        [ S.color "inherit"
+        , S.hover [ S.backgroundColor "rgba(0, 0, 0, 0.05)" ]
+        ]
+
       -- <input type=text> which is sometimes for display and sometimes for editing
       , dualText: \editable -> Batch
         [ S.padding "0"
@@ -439,7 +493,8 @@ view model =
 
       -- Constrained within the page column
       , withinColumn: Batch
-        [ S.maxWidth columnWidth
+        [ S.width "100%"
+        , S.maxWidth columnWidth
         , S.marginLeft "auto !important"
         , S.marginRight "auto !important"
         ]
