@@ -171,9 +171,9 @@ view model =
             styles.standardButton
             [ A.onClick ToggleEditing ]
             [ H.text $ "editing: " <> if model.editing then "on" else "off" ]
-          , guard (model.editing) $
+          , guard model.editing $
             H.text " | "
-          , guard (model.editing) $
+          , guard model.editing $
             H.buttonS
               styles.standardButton
               [ A.onClick CreateSigma ]
@@ -284,7 +284,7 @@ view model =
           ( sigma.variants <#> \variant -> variant.uuid /\ viewVariant sigma variant )
 
         -- add variant button
-        , guard (model.editing)
+        , guard model.editing
           H.buttonS
           [ Batch $ styles.standardButton
           , S.padding "0 1em"
@@ -345,7 +345,7 @@ view model =
           ]
 
         -- editing
-        , guard (model.editing)
+        , guard model.editing
           H.divS
           [ S.marginTop ".5em"
           , S.display "flex"
@@ -390,7 +390,7 @@ view model =
             [ ]
 
           -- delete button
-          , guard (model.editing) $
+          , guard model.editing $
             H.buttonS
             [ Batch $ styles.materialIconButton
             ]
