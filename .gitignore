@@ -1,3 +1,5 @@
 output/**
 .spago/**
 index.js
+result
+.spago2nix/**
