@@ -49,7 +49,7 @@ exampleSigmaSeeds =
     , variants: [ "allowed" /\ 1.0, "cook!" /\ 2.0 ] }
 
   , { name: "Masturbation"
-    , variants: [ "required" /\ 1.0, "optional" /\ 1.0 ] }
+    , variants: [ "required" /\ 1.0, "optional" /\ 1.0, "prohibited" /\ 1.0 ] }
 
   , { name: "Vibe"
     , variants: [ "cat" /\ 1.0, "dog" /\ 1.0 ] }
@@ -71,15 +71,6 @@ exampleSigmaSeeds =
 
   , { name: "Lawfulness"
     , variants: [ "follow the law" /\ 1.0, "above the law" /\ 1.0 ] }
-
-  , { name: "Political stance"
-    , variants: [ "blue" /\ 1.0, "red" /\ 1.0 ] }
-
-  , { name: "Sexuality"
-    , variants: [ "straight" /\ 1.0, "gay" /\ 1.0, "bi" /\ 1.0, "pan" /\ 1.0, "ace" /\ 1.0, "vibing" /\ 1.0 ] }
-
-  , { name: "Spirituality"
-    , variants: [ "on" /\ 1.0, "off" /\ 1.0 ] }
 
   , { name: "Hairstyle"
     , variants: [ "braid" /\ 1.0, "bun" /\ 1.0, "down" /\ 1.0, "hat" /\ 1.0, "cat?" /\ 1.0 ] }
